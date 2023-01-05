@@ -1,54 +1,106 @@
 class Calculator {
     constructor(config){
-        this.firstNumberElement = config.firstNumberElement;
-        this.operatorElement = config.operatorElement;
-        this.secondNumberElement = config.secondNumberElement;
-        this.summaryElement = config.summaryElement;
-        
-        this.stage = "getFirstNumber";
+        this.elements = {
+            0 : config.firstNumberElement,
+            1 : config.operatorElement,
+            2 : config.secondNumberElement,
+            3 : config.summaryElement,
+        }
+        this.state = 0;
         this.operator = "";
-        this.firstNumber = "";
-        this.operands = ["+","-","*","/","=","AC","DEL"];
+        this.numbers = {
+            0 : "",
+            2 : "",
+        }
+        this.operands = ["+","-","*","/","AC"];
+        this.answer = "";
     }
     
+    pressEqual(){
+        if (this.isNotNumberPrepared(this.numbers[2])) return;
+        this.calculation(Number(this.numbers[0]),Number(this.numbers[2]),this.operator);
+        this.draw(this.elements[3],this.answer);
+        this.state = 4;
+    }
+
+    
+    backSpaceNumber(){
+        if (this.numbers[this.state].length < 1) return;
+        this.numbers[this.state] = this.numbers[this.state].substr(0,this.numbers[this.state].length - 1);
+        this.draw(this.elements[this.state],this.numbers[this.state]);
+
+    }
+
     PressKey(key){
-        if (this.operands.includes(key)) return this.pressOperator(key);
-        this.pressNumber(key);
-        
+        if (this.state === 4) return;
+        if (key === "=")  {return this.pressEqual(),this.addVisualEffects();}
+        if (key === "DEL")  {return this.backSpaceNumber()}
+        if (this.operands.includes(key)) {return this.pressOperator(key),this.addVisualEffects();}
+
+        this.pressNumber(key); 
+        this.addVisualEffects();
     }
 
     pressNumber(number){
-        if (this.stage === "getFirstNumber") {
-            this.compileFirstNumber(number);
-        }
-        console.log(number);
+        this.compileNumber(number,this.state);
+    }
+
+    changeTextSize(element,size){
+        element.style.fontSize = size + "px"; 
+    }
+
+    isNotNumberPrepared(number){
+        return number === "" ? true : false;
+    }
+
+    addVisualEffects(){
+        const smallSize = 14;
+        const bigSize = 25;
+        
+      
+
+       for (let i = 0; i < Object.keys(this.elements).length - 1; i++) {   
+        if (this.elements[i + 1].innerHTML != "") {
+            this.changeTextSize(this.elements[i],smallSize);
+        }        
+       }
     }
 
     pressOperator(operator){
-        if (this.stage === "getFirstNumber") {
-            this.stage = "getSecondNumber";
-            this.operator = operator;
-            this.drawOperand(this.operatorElement,this.operator);
-        }
-        console.log(operator);
-
-    }
-
-    //save input first number by user and show it on the screen
-    compileFirstNumber(number){
-        // input symbol is operator or not
-        
-
-        this.firstNumber += number;
-        this.drawNumber(this.firstNumberElement,this.firstNumber) ; 
+       if (this.isNotNumberPrepared(this.numbers[this.state]))  return;
+       this.operator = operator;
+       this.draw(this.elements[1],operator);
+       this.state = 2; 
     }
     
-    drawNumber(element,number){
+    calculation(firstNumber,secondNumber,operator){
+        switch (operator) {
+            case "+":
+                this.answer = firstNumber + secondNumber;
+                break;
+            case "*":
+                this.answer = firstNumber * secondNumber;
+                break;
+            case "-":
+                this.answer = firstNumber - secondNumber;
+                break;
+            case "/":
+                this.answer = firstNumber / secondNumber;
+                break;
+        
+            default:
+                break;
+        }
+    }
+
+    compileNumber(number,state){
+        this.numbers[state] += number;
+        this.draw(this.elements[state],this.numbers[state]) ; 
+    }
+    
+    draw(element,number){
         element.innerHTML = number;
-    }
-    drawOperand(element,operator){
-        element.innerHTML = operator;
-    }
+    }  
 }
 
 const config = {
