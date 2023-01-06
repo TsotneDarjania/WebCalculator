@@ -12,7 +12,7 @@ class Calculator {
             0 : "",
             2 : "",
         }
-        this.operands = ["+","-","*","/","AC"];
+        this.operands = ["+","-","*","/"];
         this.answer = "";
     }
     
@@ -23,25 +23,41 @@ class Calculator {
         this.state = 4;
     }
 
-    
     backSpaceNumber(){
         if (this.numbers[this.state].length < 1) return;
         this.numbers[this.state] = this.numbers[this.state].substr(0,this.numbers[this.state].length - 1);
         this.draw(this.elements[this.state],this.numbers[this.state]);
+    }
 
+    restart(){
+        this.numbers[0] = "";
+        this.numbers[2] = "";
+        this.state = 0;
+        
+        this.clearScreen();
+        this.resetElementSizes();
+    }
+
+    clearScreen(){
+        Object.keys(this.elements).forEach(key => {
+            this.elements[key].innerHTML = "";
+        });
     }
 
     PressKey(key){
-        if (this.state === 4) return;
+        if (key === "AC")  {return this.restart()}
+        if (this.state === 4) this.restart();
         if (key === "=")  {return this.pressEqual(),this.addVisualEffects();}
         if (key === "DEL")  {return this.backSpaceNumber()}
         if (this.operands.includes(key)) {return this.pressOperator(key),this.addVisualEffects();}
-
+        
         this.pressNumber(key); 
         this.addVisualEffects();
     }
 
     pressNumber(number){
+        if( this.numbers[this.state].length < 1 && number === ".") return;
+        if(this.numbers[this.state].includes(".") && number === "." ) return;
         this.compileNumber(number,this.state);
     }
 
@@ -53,17 +69,18 @@ class Calculator {
         return number === "" ? true : false;
     }
 
+    resetElementSizes(){
+        for (let i = 0; i < Object.keys(this.elements).length - 1; i++) {        
+            this.changeTextSize(this.elements[i],25);
+        }      
+    }
+    
     addVisualEffects(){
-        const smallSize = 14;
-        const bigSize = 25;
-        
-      
-
-       for (let i = 0; i < Object.keys(this.elements).length - 1; i++) {   
-        if (this.elements[i + 1].innerHTML != "") {
-            this.changeTextSize(this.elements[i],smallSize);
-        }        
-       }
+        for (let i = 0; i < Object.keys(this.elements).length - 1; i++) {   
+            if (this.elements[i + 1].innerHTML != "") {
+                this.changeTextSize(this.elements[i],14);
+            }        
+        }
     }
 
     pressOperator(operator){
@@ -87,7 +104,6 @@ class Calculator {
             case "/":
                 this.answer = firstNumber / secondNumber;
                 break;
-        
             default:
                 break;
         }
